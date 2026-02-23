@@ -33,7 +33,7 @@ This checklist is used as a recurring audit to ensure implementation stays align
 - [x] Embedding model configured to `all-MiniLM-L6-v2`.
 - [x] ChromaDB storage implemented.
 - [x] Retrieval implemented with top-k chunks.
-- [ ] Ingestion run completed on provided knowledge base folder.
+- [x] Ingestion run completed on provided knowledge base folder.
 - [ ] Citation formatting validated in UI output.
 
 ## 5) LLM & Prompt Engineering (Module 4)
@@ -47,7 +47,7 @@ This checklist is used as a recurring audit to ensure implementation stays align
 
 - [x] Routing layer implemented.
 - [x] Risk-based intervention logic implemented.
-- [ ] End-to-end tested with live model prediction output.
+- [x] End-to-end tested with live model prediction output.
 
 ## 7) UI Requirements
 
@@ -71,7 +71,7 @@ This checklist is used as a recurring audit to ensure implementation stays align
 - [x] Use notebook workflow for cleaning and training.
 - [x] Commit messages are in past tense.
 - [x] Push after commit policy is active.
-- [ ] Continue micro-commit + immediate push for all remaining untracked modules.
+- [x] Continue micro-commit + immediate push for all remaining untracked modules.
 
 ## Audit Cadence
 
