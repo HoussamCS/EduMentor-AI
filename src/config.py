@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 @dataclass(frozen=True)
 class Settings:
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "").strip()
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     chroma_persist_dir: str = os.getenv("CHROMA_PERSIST_DIR", "chromadb")
     chroma_collection: str = os.getenv("CHROMA_COLLECTION", "edumentor_kb")
