@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduMentor AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <h1 class="mb-1">EduMentor AI</h1>
+    <p class="text-muted">RAG Tutor · Exercise Generator · Student Risk Analytics</p>
+
+    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button">Course Chat</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#exercise-tab-pane" type="button">Exercise Generator</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics-tab-pane" type="button">Analytics Dashboard</button>
+      </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
+      <div class="tab-pane fade show active" id="chat-tab-pane">
+        <div class="mb-3">
+          <label class="form-label">Ask a course question</label>
+          <textarea id="chatQuestion" class="form-control" rows="3" placeholder="Explain gradient descent in simple terms"></textarea>
+        </div>
+        <button id="chatBtn" class="btn btn-primary">Ask</button>
+        <div class="mt-4">
+          <h5>Answer</h5>
+          <pre id="chatAnswer" class="result-box"></pre>
+          <h6>Sources</h6>
+          <ul id="chatSources"></ul>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="exercise-tab-pane">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Topic</label>
+            <input id="exerciseTopic" class="form-control" placeholder="Python Functions" value="Python Basics" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Difficulty</label>
+            <select id="exerciseDifficulty" class="form-select">
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+        </div>
+        <button id="exerciseBtn" class="btn btn-success mt-3">Generate Exercise</button>
+
+        <div class="mt-4">
+          <h5>Generated Exercise</h5>
+          <pre id="exerciseResult" class="result-box"></pre>
+        </div>
+
+        <hr>
+        <h5>Quiz Text Auto-Grader</h5>
+        <div class="mb-2">
+          <label class="form-label">Question</label>
+          <textarea id="gradeQuestion" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Expected Answer</label>
+          <textarea id="gradeExpected" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Student Answer</label>
+          <textarea id="gradeStudent" class="form-control" rows="3"></textarea>
+        </div>
+        <button id="gradeBtn" class="btn btn-warning">Grade Answer</button>
+        <pre id="gradeResult" class="result-box mt-3"></pre>
+      </div>
+
+      <div class="tab-pane fade" id="analytics-tab-pane">
+        <p class="text-muted">Submit a single student record as JSON to predict risk.</p>
+        <div class="mb-3">
+          <label class="form-label">Student Record JSON</label>
+          <textarea id="riskJson" class="form-control" rows="10">{
+  "code_module": "AAA",
+  "code_presentation": "2013J",
+  "highest_education": "A Level or Equivalent",
+  "num_of_prev_attempts": 0,
+  "studied_credits": 60,
+  "total_clicks": 120,
+  "avg_assessment_score": 65
+}</textarea>
+        </div>
+        <button id="riskBtn" class="btn btn-danger">Predict Risk</button>
+        <pre id="riskResult" class="result-box mt-3"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
