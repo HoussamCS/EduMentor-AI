@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 import chromadb
 from pypdf import PdfReader
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 
 
 def chunk_text(text: str, chunk_size: int = 800, overlap: int = 150) -> List[str]:
@@ -66,12 +66,17 @@ def ingest_to_chroma(
     if not chunks:
         return 0
 
-    embedder = SentenceTransformer(embedding_model_name)
-    embeddings = embedder.encode(chunks, normalize_embeddings=True).tolist()
+    if embedding_model_name != "all-MiniLM-L6-v2":
+        raise ValueError("Only all-MiniLM-L6-v2 is currently supported in this runtime")
+
+    embedding_fn = embedding_functions.DefaultEmbeddingFunction()
 
     client = chromadb.PersistentClient(path=persist_dir)
-    collection = client.get_or_create_collection(name=collection_name)
+    collection = client.get_or_create_collection(
+        name=collection_name,
+        embedding_function=embedding_fn,
+    )
 
     ids = [f"doc_{i}" for i in range(len(chunks))]
-    collection.upsert(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
+    collection.upsert(ids=ids, documents=chunks, metadatas=metadata)
     return len(chunks)

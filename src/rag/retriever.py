@@ -3,19 +3,24 @@ from __future__ import annotations
 from typing import Dict, List
 
 import chromadb
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 
 
 class ChromaRetriever:
     def __init__(self, persist_dir: str, collection_name: str, embedding_model: str = "all-MiniLM-L6-v2"):
+        if embedding_model != "all-MiniLM-L6-v2":
+            raise ValueError("Only all-MiniLM-L6-v2 is currently supported in this runtime")
+
         self.client = chromadb.PersistentClient(path=persist_dir)
-        self.collection = self.client.get_or_create_collection(name=collection_name)
-        self.embedder = SentenceTransformer(embedding_model)
+        embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+        self.collection = self.client.get_or_create_collection(
+            name=collection_name,
+            embedding_function=embedding_fn,
+        )
 
     def search(self, query: str, top_k: int = 4) -> Dict[str, List]:
-        query_vec = self.embedder.encode([query], normalize_embeddings=True).tolist()[0]
         results = self.collection.query(
-            query_embeddings=[query_vec],
+            query_texts=[query],
             n_results=top_k,
             include=["documents", "metadatas", "distances"],
         )
