@@ -71,3 +71,44 @@ python app.py
 - Train baseline models and save best model
 - Build Chroma ingestion from course knowledge base
 - Connect full agent orchestration
+
+## Execution Workflow
+
+### Notebook-first (as required)
+
+1. Run `notebooks/preprocessing.ipynb` to generate:
+	- `data/processed/clean_data.csv`
+	- `data/processed/train_data.csv`
+	- `data/processed/test_data.csv`
+
+2. Run `notebooks/ml_baseline_training.ipynb` to generate:
+	- `models/risk_model.joblib`
+	- `models/model_comparison.csv`
+
+### Script equivalents
+
+- Preprocess data:
+
+```bash
+python scripts/preprocess_data.py
+```
+
+- Train model:
+
+```bash
+python scripts/train_model.py
+```
+
+- Ingest knowledge base into Chroma:
+
+```bash
+python scripts/ingest_kb.py
+```
+
+### Important Paths
+
+- OULAD default path: `C:/Users/PC/Downloads/open+university+learning+analytics+dataset`
+- Knowledge base default path: `C:/Users/PC/Downloads/EduMentor_University_Grade_Knowledge_Base`
+- You can override both in `.env` using:
+  - `OULAD_DATASET_PATH`
+  - `KNOWLEDGE_BASE_PATH`
