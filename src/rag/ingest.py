@@ -61,6 +61,7 @@ def ingest_to_chroma(
     persist_dir: str,
     collection_name: str,
     embedding_model_name: str = "all-MiniLM-L6-v2",
+    reset_collection: bool = True,
 ) -> int:
     chunks, metadata = collect_chunks(knowledge_base_path)
     if not chunks:
@@ -72,6 +73,12 @@ def ingest_to_chroma(
     embedding_fn = embedding_functions.DefaultEmbeddingFunction()
 
     client = chromadb.PersistentClient(path=persist_dir)
+    if reset_collection:
+        try:
+            client.delete_collection(name=collection_name)
+        except Exception:
+            pass
+
     collection = client.get_or_create_collection(
         name=collection_name,
         embedding_function=embedding_fn,
