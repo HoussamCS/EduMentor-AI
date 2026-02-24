@@ -7,6 +7,41 @@ async function postJson(url, payload) {
   return response.json();
 }
 
+function extractSection(text, sectionName, nextSections) {
+  const escapedSection = sectionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedNext = nextSections
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("|");
+
+  const regex = new RegExp(
+    `${escapedSection}:\\s*([\\s\\S]*?)(?=\\n(?:${escapedNext}):|$)`,
+    "i"
+  );
+  const match = text.match(regex);
+  return match ? match[1].trim() : "";
+}
+
+function resetExerciseDetailsVisibility() {
+  const details = document.getElementById("exerciseDetails");
+  const toggleBtn = document.getElementById("toggleExerciseDetailsBtn");
+  details.classList.add("d-none");
+  toggleBtn.textContent = "Show Hints / Solution / Example Usage";
+}
+
+document.getElementById("toggleExerciseDetailsBtn").addEventListener("click", () => {
+  const details = document.getElementById("exerciseDetails");
+  const toggleBtn = document.getElementById("toggleExerciseDetailsBtn");
+  const isHidden = details.classList.contains("d-none");
+
+  if (isHidden) {
+    details.classList.remove("d-none");
+    toggleBtn.textContent = "Hide Hints / Solution / Example Usage";
+  } else {
+    details.classList.add("d-none");
+    toggleBtn.textContent = "Show Hints / Solution / Example Usage";
+  }
+});
+
 document.getElementById("chatBtn").addEventListener("click", async () => {
   const question = document.getElementById("chatQuestion").value.trim();
   if (!question) return;
@@ -28,7 +63,32 @@ document.getElementById("exerciseBtn").addEventListener("click", async () => {
   const difficulty = document.getElementById("exerciseDifficulty").value;
 
   const result = await postJson("/api/exercise", { topic, difficulty });
-  document.getElementById("exerciseResult").textContent = result.exercise || result.error || "No response";
+  const text = result.exercise || result.error || "No response";
+
+  const sectionOrder = [
+    "Problem",
+    "Example Input",
+    "Expected Output",
+    "Hints",
+    "Solution",
+    "Example Usage",
+  ];
+
+  const problem = extractSection(text, "Problem", sectionOrder.filter((s) => s !== "Problem"));
+  const exampleInput = extractSection(text, "Example Input", sectionOrder.filter((s) => s !== "Example Input"));
+  const expectedOutput = extractSection(text, "Expected Output", sectionOrder.filter((s) => s !== "Expected Output"));
+  const hints = extractSection(text, "Hints", sectionOrder.filter((s) => s !== "Hints"));
+  const solution = extractSection(text, "Solution", sectionOrder.filter((s) => s !== "Solution"));
+  const exampleUsage = extractSection(text, "Example Usage", sectionOrder.filter((s) => s !== "Example Usage"));
+
+  document.getElementById("exerciseProblem").textContent = problem || text;
+  document.getElementById("exerciseExampleInput").textContent = exampleInput || "No example input provided.";
+  document.getElementById("exerciseExpectedOutput").textContent = expectedOutput || "No expected output provided.";
+  document.getElementById("exerciseHints").textContent = hints || "No hints provided.";
+  document.getElementById("exerciseSolution").textContent = solution || "No solution provided.";
+  document.getElementById("exerciseExampleUsage").textContent = exampleUsage || "No example usage provided.";
+
+  resetExerciseDetailsVisibility();
 });
 
 document.getElementById("gradeBtn").addEventListener("click", async () => {

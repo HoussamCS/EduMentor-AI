@@ -58,7 +58,35 @@
 
         <div class="mt-4">
           <h5>Generated Exercise</h5>
-          <pre id="exerciseResult" class="result-box"></pre>
+          <div class="mb-3">
+            <label class="form-label">Problem</label>
+            <pre id="exerciseProblem" class="result-box"></pre>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Example Input</label>
+            <pre id="exerciseExampleInput" class="result-box"></pre>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Expected Output</label>
+            <pre id="exerciseExpectedOutput" class="result-box"></pre>
+          </div>
+
+          <button id="toggleExerciseDetailsBtn" class="btn btn-outline-secondary btn-sm" type="button">Show Hints / Solution / Example Usage</button>
+
+          <div id="exerciseDetails" class="mt-3 d-none">
+            <div class="mb-3">
+              <label class="form-label">Hints</label>
+              <pre id="exerciseHints" class="result-box"></pre>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Solution</label>
+              <pre id="exerciseSolution" class="result-box"></pre>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Example Usage</label>
+              <pre id="exerciseExampleUsage" class="result-box"></pre>
+            </div>
+          </div>
         </div>
 
         <hr>
