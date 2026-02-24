@@ -33,6 +33,8 @@ Solution:
 
 Example Usage:
 ...
+
+Do not add markdown bold markers around section names.
 """.strip()
 
 

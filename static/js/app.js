@@ -14,11 +14,18 @@ function extractSection(text, sectionName, nextSections) {
     .join("|");
 
   const regex = new RegExp(
-    `${escapedSection}:\\s*([\\s\\S]*?)(?=\\n(?:${escapedNext}):|$)`,
+    `(?:^|\\n)\\s*(?:\\*\\*)?${escapedSection}:(?:\\*\\*)?\\s*([\\s\\S]*?)(?=(?:\\n\\s*(?:\\*\\*)?(?:${escapedNext}):(?:\\*\\*)?)|$)`,
     "i"
   );
   const match = text.match(regex);
   return match ? match[1].trim() : "";
+}
+
+function normalizeExerciseText(text) {
+  return (text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/^\s*\*\*(Problem|Example Input|Expected Output|Hints|Solution|Example Usage):\*\*\s*$/gim, "$1:")
+    .trim();
 }
 
 function resetExerciseDetailsVisibility() {
@@ -63,7 +70,7 @@ document.getElementById("exerciseBtn").addEventListener("click", async () => {
   const difficulty = document.getElementById("exerciseDifficulty").value;
 
   const result = await postJson("/api/exercise", { topic, difficulty });
-  const text = result.exercise || result.error || "No response";
+  const text = normalizeExerciseText(result.exercise || result.error || "No response");
 
   const sectionOrder = [
     "Problem",
