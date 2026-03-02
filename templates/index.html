@@ -108,17 +108,34 @@
       </div>
 
       <div class="tab-pane fade" id="analytics-tab-pane">
-        <p class="text-muted">Submit a single student record as JSON to predict risk.</p>
+        <p class="text-muted">
+          Submit a single student record as JSON to predict risk. You may include
+          only the fields you have – missing columns will be filled automatically
+          (the model uses the full feature set used during training).
+        </p>
         <div class="mb-3">
           <label class="form-label">Student Record JSON</label>
-          <textarea id="riskJson" class="form-control" rows="10">{
+          <textarea id="riskJson" class="form-control" rows="12">{
   "code_module": "AAA",
   "code_presentation": "2013J",
+  "id_student": 123456,
+  "gender": "Male",
+  "region": "E" ,
   "highest_education": "A Level or Equivalent",
+  "imd_band": "0-10",
+  "age_band": "20-25",
   "num_of_prev_attempts": 0,
   "studied_credits": 60,
+  "disability": "N",
+  "final_result": "Pass",
+  "registration_day": 1,
+  "unregister_day": 0,
+  "avg_assessment_score": 65,
+  "submitted_assessments": 3,
+  "avg_assessment_weight": 50,
   "total_clicks": 120,
-  "avg_assessment_score": 65
+  "avg_clicks_per_event": 5,
+  "activity_events": 200
 }</textarea>
         </div>
         <button id="riskBtn" class="btn btn-danger">Predict Risk</button>
