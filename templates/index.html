@@ -36,7 +36,9 @@
           await navigator.clipboard.writeText(text);
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
-        } catch {}
+        } catch (e) {
+          /* ignore */
+        }
       };
       return (
         <button
@@ -328,43 +330,57 @@
     }
 
     function AnalyticsTab() {
-      const [jsonInput, setJsonInput] = useState(`{
-  "code_module": "AAA",
-  "code_presentation": "2013J",
-  "id_student": 123456,
-  "gender": "Male",
-  "region": "E" ,
-  "highest_education": "A Level or Equivalent",
-  "imd_band": "0-10",
-  "age_band": "20-25",
-  "num_of_prev_attempts": 0,
-  "studied_credits": 60,
-  "disability": "N",
-  "final_result": "Pass",
-  "registration_day": 1,
-  "unregister_day": 0,
-  "avg_assessment_score": 65,
-  "submitted_assessments": 3,
-  "avg_assessment_weight": 50,
-  "total_clicks": 120,
-  "avg_clicks_per_event": 5,
-  "activity_events": 200
-}`);
+      const [formData, setFormData] = useState({
+        gender: "",
+        highest_education: "",
+        imd_band: "",
+        age_band: "",
+        studied_credits: "",
+        disability: "",
+        final_result: "",
+        registration_day: "",
+        unregister_day: "",
+        avg_assessment_score: "",
+        submitted_assessments: "",
+        avg_assessment_weight: "",
+        total_clicks: "",
+        avg_clicks_per_event: "",
+        activity_events: ""
+      });
       const [result, setResult] = useState("");
       const [loading, setLoading] = useState(false);
 
+      const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+          ...prev,
+          [field]: value
+        }));
+      };
+
       const predict = async () => {
-        let payload;
-        try {
-          payload = JSON.parse(jsonInput);
-        } catch {
-          setResult("Invalid JSON format.");
-          return;
-        }
         setLoading(true);
         try {
+          const payload = {
+            ...formData,
+            studied_credits: parseInt(formData.studied_credits),
+            registration_day: parseInt(formData.registration_day),
+            unregister_day: parseInt(formData.unregister_day),
+            avg_assessment_score: parseFloat(formData.avg_assessment_score),
+            submitted_assessments: parseInt(formData.submitted_assessments),
+            avg_assessment_weight: parseFloat(formData.avg_assessment_weight),
+            total_clicks: parseInt(formData.total_clicks),
+            avg_clicks_per_event: parseFloat(formData.avg_clicks_per_event),
+            activity_events: parseInt(formData.activity_events)
+          };
           const r = await postJson("/api/risk", payload);
-          setResult(JSON.stringify(r, null, 2));
+          // Format response as human-readable text
+          let resultText = "Risk Assessment Result\n";
+          resultText += "=".repeat(40) + "\n\n";
+          for (const [key, value] of Object.entries(r)) {
+            const formattedKey = key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+            resultText += `${formattedKey}: ${value}\n`;
+          }
+          setResult(resultText);
         } catch (e) {
           setResult("Error: " + e.message);
         }
@@ -374,20 +390,169 @@
       return (
         <div>
           <p className="text-muted">
-            Submit a single student record as JSON to predict risk. You may include
-            only the fields you have – missing columns will be filled automatically
-            (the model uses the full feature set used during training).
+            Enter student information to predict risk level.
           </p>
-          <div className="mb-3">
-            <label className="form-label">Student Record JSON</label>
-            <textarea
-              value={jsonInput}
-              onChange={(e) => setJsonInput(e.target.value)}
-              className="form-control"
-              rows={12}
-            />
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Gender</label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.gender}
+                onChange={(e) => handleInputChange("gender", e.target.value)}
+                placeholder="e.g., M, F"
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Highest Education</label>
+              <select
+                className="form-select"
+                value={formData.highest_education}
+                onChange={(e) => handleInputChange("highest_education", e.target.value)}
+              >
+                <option value="">Select highest education</option>
+                <option>A Level or Equivalent</option>
+                <option>HE Qualification</option>
+                <option>Lower Than A Level</option>
+                <option>Post Graduate Qualification</option>
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">IMD Band</label>
+              <select
+                className="form-select"
+                value={formData.imd_band}
+                onChange={(e) => handleInputChange("imd_band", e.target.value)}
+              >
+                <option value="">Select IMD band</option>
+                <option>0-10</option>
+                <option>10-20</option>
+                <option>20-30</option>
+                <option>30-40</option>
+                <option>40-50</option>
+                <option>50-60</option>
+                <option>60-70</option>
+                <option>70-80</option>
+                <option>80-90</option>
+                <option>90-100</option>
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Age Band</label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.age_band}
+                onChange={(e) => handleInputChange("age_band", e.target.value)}
+                placeholder="e.g., 20-25"
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Studied Credits</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.studied_credits}
+                onChange={(e) => handleInputChange("studied_credits", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Disability</label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.disability}
+                onChange={(e) => handleInputChange("disability", e.target.value)}
+                placeholder="Y or N"
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Final Result</label>
+              <input
+                type="text"
+                className="form-control"
+                value={formData.final_result}
+                onChange={(e) => handleInputChange("final_result", e.target.value)}
+                placeholder="e.g., Pass, Fail"
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Registration Day</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.registration_day}
+                onChange={(e) => handleInputChange("registration_day", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Unregister Day</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.unregister_day}
+                onChange={(e) => handleInputChange("unregister_day", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Avg Assessment Score</label>
+              <input
+                type="number"
+                step="0.1"
+                className="form-control"
+                value={formData.avg_assessment_score}
+                onChange={(e) => handleInputChange("avg_assessment_score", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Submitted Assessments</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.submitted_assessments}
+                onChange={(e) => handleInputChange("submitted_assessments", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Avg Assessment Weight</label>
+              <input
+                type="number"
+                step="0.1"
+                className="form-control"
+                value={formData.avg_assessment_weight}
+                onChange={(e) => handleInputChange("avg_assessment_weight", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Total Clicks</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.total_clicks}
+                onChange={(e) => handleInputChange("total_clicks", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Avg Clicks Per Event</label>
+              <input
+                type="number"
+                step="0.1"
+                className="form-control"
+                value={formData.avg_clicks_per_event}
+                onChange={(e) => handleInputChange("avg_clicks_per_event", e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Activity Events</label>
+              <input
+                type="number"
+                className="form-control"
+                value={formData.activity_events}
+                onChange={(e) => handleInputChange("activity_events", e.target.value)}
+              />
+            </div>
           </div>
-          <button className="btn btn-danger" onClick={predict} disabled={loading}>
+          <button className="btn btn-danger mt-4" onClick={predict} disabled={loading}>
             Predict Risk
           </button>
           {loading && <Loader />}
@@ -416,7 +581,7 @@
         }
       };
       return (
-        <>
+        <React.Fragment>
           <h1 className="mb-1">EduMentor AI</h1>
           <p className="text-muted">
             RAG Tutor · Exercise Generator · Student Risk Analytics
@@ -450,7 +615,7 @@
           <div className="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
             {renderTab()}
           </div>
-        </>
+        </React.Fragment>
       );
     }
 
