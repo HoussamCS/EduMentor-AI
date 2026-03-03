@@ -37,6 +37,10 @@ EduMentor AI/
 
 ## Quick Start
 
+> **Frontend update**: the web interface is now powered by React and Bootstrap. The legacy `static/js/app.js` file has been removed — you don't need to worry about it.
+
+## Quick Start
+
 1. Create environment:
 
 ```bash
