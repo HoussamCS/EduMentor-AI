@@ -8,114 +8,281 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="bg-light">
-  <div class="container py-4">
-    <h1 class="mb-1">EduMentor AI</h1>
-    <p class="text-muted">RAG Tutor · Exercise Generator · Student Risk Analytics</p>
+  <div class="container py-4" id="root">
+    <!-- React app will render here -->
+  </div>
 
-    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button">Course Chat</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#exercise-tab-pane" type="button">Exercise Generator</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics-tab-pane" type="button">Analytics Dashboard</button>
-      </li>
-    </ul>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin></script>
 
-    <div class="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
-      <div class="tab-pane fade show active" id="chat-tab-pane">
-        <div class="mb-3">
-          <label class="form-label">Ask a course question</label>
-          <textarea id="chatQuestion" class="form-control" rows="3" placeholder="Explain gradient descent in simple terms"></textarea>
-        </div>
-        <button id="chatBtn" class="btn btn-primary">Ask</button>
-        <div class="mt-4">
-          <h5>Answer</h5>
-          <pre id="chatAnswer" class="result-box"></pre>
-          <h6>Sources</h6>
-          <ul id="chatSources"></ul>
-        </div>
-      </div>
+  <script type="text/babel">
+    const { useState } = React;
 
-      <div class="tab-pane fade" id="exercise-tab-pane">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Topic</label>
-            <input id="exerciseTopic" class="form-control" placeholder="Python Functions" value="Python Basics" />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Difficulty</label>
-            <select id="exerciseDifficulty" class="form-select">
-              <option>Beginner</option>
-              <option>Intermediate</option>
-              <option>Advanced</option>
-            </select>
+    function Loader() {
+      return (
+        <div className="d-flex justify-content-center my-3">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
           </div>
         </div>
-        <button id="exerciseBtn" class="btn btn-success mt-3">Generate Exercise</button>
+      );
+    }
 
-        <div class="mt-4">
-          <h5>Generated Exercise</h5>
-          <div class="mb-3">
-            <label class="form-label">Problem</label>
-            <pre id="exerciseProblem" class="result-box"></pre>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Example Input</label>
-            <pre id="exerciseExampleInput" class="result-box"></pre>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Expected Output</label>
-            <pre id="exerciseExpectedOutput" class="result-box"></pre>
-          </div>
+    async function postJson(url, payload) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return res.json();
+    }
 
-          <button id="toggleExerciseDetailsBtn" class="btn btn-outline-secondary btn-sm" type="button">Show Hints / Solution / Example Usage</button>
+    function ChatTab() {
+      const [question, setQuestion] = useState("");
+      const [answer, setAnswer] = useState("");
+      const [sources, setSources] = useState([]);
+      const [loading, setLoading] = useState(false);
 
-          <div id="exerciseDetails" class="mt-3 d-none">
-            <div class="mb-3">
-              <label class="form-label">Hints</label>
-              <pre id="exerciseHints" class="result-box"></pre>
+      const send = async () => {
+        if (!question.trim()) return;
+        setLoading(true);
+        try {
+          const result = await postJson("/api/chat", { question });
+          setAnswer(result.answer || result.error || "No response");
+          setSources(result.sources || []);
+        } catch (e) {
+          setAnswer("Error: " + e.message);
+          setSources([]);
+        }
+        setLoading(false);
+      };
+
+      return (
+        <div>
+          <div className="mb-3">
+            <label className="form-label">Ask a course question</label>
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              className="form-control"
+              rows={3}
+              placeholder="Explain gradient descent in simple terms"
+            />
+          </div>
+          <button className="btn btn-primary" onClick={send} disabled={loading}>
+            Ask
+          </button>
+          {loading && <Loader />}
+
+          <div className="mt-4">
+            <h5>Answer</h5>
+            <pre className="result-box">{answer}</pre>
+            <h6>Sources</h6>
+            <ul>
+              {sources.map((src, idx) => (
+                <li key={idx}>{src}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    function ExerciseTab() {
+      const [topic, setTopic] = useState("Python Basics");
+      const [difficulty, setDifficulty] = useState("Beginner");
+      const [result, setResult] = useState({});
+      const [loading, setLoading] = useState(false);
+      const [showDetails, setShowDetails] = useState(false);
+
+      const generate = async () => {
+        setLoading(true);
+        try {
+          const r = await postJson("/api/exercise", { topic, difficulty });
+          const text = normalizeExerciseText(r.exercise || r.error || "No response");
+          const sectionOrder = [
+            "Problem",
+            "Example Input",
+            "Expected Output",
+            "Hints",
+            "Solution",
+            "Example Usage",
+          ];
+
+          const extract = (name) =>
+            extractSection(text, name, sectionOrder.filter((s) => s !== name));
+
+          setResult({
+            problem: extract("Problem") || text,
+            exampleInput: extract("Example Input"),
+            expectedOutput: extract("Expected Output"),
+            hints: extract("Hints"),
+            solution: extract("Solution"),
+            exampleUsage: extract("Example Usage"),
+          });
+        } catch (e) {
+          setResult({ problem: "Error: " + e.message });
+        }
+        setLoading(false);
+        setShowDetails(false);
+      };
+
+      return (
+        <div>
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Topic</label>
+              <input
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="form-control"
+                placeholder="Python Functions"
+              />
             </div>
-            <div class="mb-3">
-              <label class="form-label">Solution</label>
-              <pre id="exerciseSolution" class="result-box"></pre>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Example Usage</label>
-              <pre id="exerciseExampleUsage" class="result-box"></pre>
+            <div className="col-md-6">
+              <label className="form-label">Difficulty</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                className="form-select"
+              >
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
             </div>
           </div>
-        </div>
+          <button
+            className="btn btn-success mt-3"
+            onClick={generate}
+            disabled={loading}
+          >
+            Generate Exercise
+          </button>
+          {loading && <Loader />}
 
-        <hr>
-        <h5>Quiz Text Auto-Grader</h5>
-        <div class="mb-2">
-          <label class="form-label">Question</label>
-          <textarea id="gradeQuestion" class="form-control" rows="2"></textarea>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Expected Answer</label>
-          <textarea id="gradeExpected" class="form-control" rows="3"></textarea>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Student Answer</label>
-          <textarea id="gradeStudent" class="form-control" rows="3"></textarea>
-        </div>
-        <button id="gradeBtn" class="btn btn-warning">Grade Answer</button>
-        <pre id="gradeResult" class="result-box mt-3"></pre>
-      </div>
+          {result.problem && (
+            <div className="mt-4">
+              <h5>Generated Exercise</h5>
+              <div className="mb-3">
+                <label className="form-label">Problem</label>
+                <pre className="result-box">{result.problem}</pre>
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Example Input</label>
+                <pre className="result-box">
+                  {result.exampleInput || "No example input provided."}
+                </pre>
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Expected Output</label>
+                <pre className="result-box">
+                  {result.expectedOutput || "No expected output provided."}
+                </pre>
+              </div>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails
+                  ? "Hide Hints / Solution / Example Usage"
+                  : "Show Hints / Solution / Example Usage"}
+              </button>
+              {showDetails && (
+                <div className="mt-3">
+                  <div className="mb-3">
+                    <label className="form-label">Hints</label>
+                    <pre className="result-box">
+                      {result.hints || "No hints provided."}
+                    </pre>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Solution</label>
+                    <pre className="result-box">
+                      {result.solution || "No solution provided."}
+                    </pre>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Example Usage</label>
+                    <pre className="result-box">
+                      {result.exampleUsage || "No example usage provided."}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
-      <div class="tab-pane fade" id="analytics-tab-pane">
-        <p class="text-muted">
-          Submit a single student record as JSON to predict risk. You may include
-          only the fields you have – missing columns will be filled automatically
-          (the model uses the full feature set used during training).
-        </p>
-        <div class="mb-3">
-          <label class="form-label">Student Record JSON</label>
-          <textarea id="riskJson" class="form-control" rows="12">{
+          <hr />
+          <h5>Quiz Text Auto-Grader</h5>
+          <Grader />
+        </div>
+      );
+    }
+
+    function Grader() {
+      const [question, setQuestion] = useState("");
+      const [expected, setExpected] = useState("");
+      const [student, setStudent] = useState("");
+      const [feedback, setFeedback] = useState("");
+      const [loading, setLoading] = useState(false);
+
+      const grade = async () => {
+        setLoading(true);
+        try {
+          const r = await postJson("/api/grade-quiz", {
+            question,
+            expected_answer: expected,
+            student_answer: student,
+          });
+          setFeedback(r.feedback || r.error || "No response");
+        } catch (e) {
+          setFeedback("Error: " + e.message);
+        }
+        setLoading(false);
+      };
+
+      return (
+        <div>
+          <div className="mb-2">
+            <label className="form-label">Question</label>
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              className="form-control"
+              rows={2}
+            />
+          </div>
+          <div className="mb-2">
+            <label className="form-label">Expected Answer</label>
+            <textarea
+              value={expected}
+              onChange={(e) => setExpected(e.target.value)}
+              className="form-control"
+              rows={3}
+            />
+          </div>
+          <div className="mb-2">
+            <label className="form-label">Student Answer</label>
+            <textarea
+              value={student}
+              onChange={(e) => setStudent(e.target.value)}
+              className="form-control"
+              rows={3}
+            />
+          </div>
+          <button className="btn btn-warning" onClick={grade} disabled={loading}>
+            Grade Answer
+          </button>
+          {loading && <Loader />}
+          {feedback && <pre className="result-box mt-3">{feedback}</pre>}
+        </div>
+      );
+    }
+
+    function AnalyticsTab() {
+      const [jsonInput, setJsonInput] = useState(`{
   "code_module": "AAA",
   "code_presentation": "2013J",
   "id_student": 123456,
@@ -136,15 +303,128 @@
   "total_clicks": 120,
   "avg_clicks_per_event": 5,
   "activity_events": 200
-}</textarea>
-        </div>
-        <button id="riskBtn" class="btn btn-danger">Predict Risk</button>
-        <pre id="riskResult" class="result-box mt-3"></pre>
-      </div>
-    </div>
-  </div>
+}`);
+      const [result, setResult] = useState("");
+      const [loading, setLoading] = useState(false);
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-</body>
+      const predict = async () => {
+        let payload;
+        try {
+          payload = JSON.parse(jsonInput);
+        } catch {
+          setResult("Invalid JSON format.");
+          return;
+        }
+        setLoading(true);
+        try {
+          const r = await postJson("/api/risk", payload);
+          setResult(JSON.stringify(r, null, 2));
+        } catch (e) {
+          setResult("Error: " + e.message);
+        }
+        setLoading(false);
+      };
+
+      return (
+        <div>
+          <p className="text-muted">
+            Submit a single student record as JSON to predict risk. You may include
+            only the fields you have – missing columns will be filled automatically
+            (the model uses the full feature set used during training).
+          </p>
+          <div className="mb-3">
+            <label className="form-label">Student Record JSON</label>
+            <textarea
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              className="form-control"
+              rows={12}
+            />
+          </div>
+          <button className="btn btn-danger" onClick={predict} disabled={loading}>
+            Predict Risk
+          </button>
+          {loading && <Loader />}
+          {result && <pre className="result-box mt-3">{result}</pre>}
+        </div>
+      );
+    }
+
+    function App() {
+      const [activeTab, setActiveTab] = useState("chat");
+      const renderTab = () => {
+        switch (activeTab) {
+          case "chat":
+            return <ChatTab />;
+          case "exercise":
+            return <ExerciseTab />;
+          case "analytics":
+            return <AnalyticsTab />;
+          default:
+            return null;
+        }
+      };
+      return (
+        <>
+          <h1 className="mb-1">EduMentor AI</h1>
+          <p className="text-muted">
+            RAG Tutor · Exercise Generator · Student Risk Analytics
+          </p>
+          <ul className="nav nav-tabs" role="tablist">
+            <li className="nav-item" role="presentation">
+              <button
+                className={`nav-link ${activeTab === "chat" ? "active" : ""}`}
+                onClick={() => setActiveTab("chat")}
+              >
+                Course Chat
+              </button>
+            </li>
+            <li className="nav-item" role="presentation">
+              <button
+                className={`nav-link ${activeTab === "exercise" ? "active" : ""}`}
+                onClick={() => setActiveTab("exercise")}
+              >
+                Exercise Generator
+              </button>
+            </li>
+            <li className="nav-item" role="presentation">
+              <button
+                className={`nav-link ${activeTab === "analytics" ? "active" : ""}`}
+                onClick={() => setActiveTab("analytics")}
+              >
+                Analytics Dashboard
+              </button>
+            </li>
+          </ul>
+          <div className="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
+            {renderTab()}
+          </div>
+        </>
+      );
+    }
+
+    // helper functions from original script
+    function extractSection(text, sectionName, nextSections) {
+      const escapedSection = sectionName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+      const escapedNext = nextSections
+        .map((name) => name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"))
+        .join("|");
+
+      const regex = new RegExp(
+        `(?:^|\\n)\\s*(?:\\*\\*)?${escapedSection}:(?:\\*\\*)?\\s*([\\s\\S]*?)(?=(?:\\n\\s*(?:\\*\\*)?(?:${escapedNext}):(?:\\*\\*)?)|$)`,
+        "i"
+      );
+      const match = text.match(regex);
+      return match ? match[1].trim() : "";
+    }
+
+    function normalizeExerciseText(text) {
+      return (text || "")
+        .replace(/\r\n/g, "\n")
+        .replace(/^\s*\*\*(Problem|Example Input|Expected Output|Hints|Solution|Example Usage):\*\*\s*$/gim, "$1:")
+        .trim();
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script></body>
 </html>

@@ -26,3 +26,4 @@ print(pred)
 if hasattr(model, 'predict_proba'):
     print('proba:')
     print(model.predict_proba(input_df))
+

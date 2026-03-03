@@ -5,7 +5,7 @@ EduMentor AI is a capstone project that combines classical machine learning, Ret
 ## Stack
 
 - Backend: Flask
-- Frontend: HTML, Bootstrap, Vanilla JavaScript
+- Frontend: React + Bootstrap (formerly HTML/JS) with improved user experience
 - ML: scikit-learn
 - RAG: ChromaDB + all-MiniLM-L6-v2 embeddings
 - LLM: OpenAI API
@@ -63,7 +63,7 @@ copy .env.example .env
 python app.py
 ```
 
-6. Open `http://127.0.0.1:5000`.
+6. Open `http://127.0.0.1:5000` and interact with the updated React-powered interface.
 
 ## Next Milestones
 
