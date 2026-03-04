@@ -59,11 +59,17 @@ def build_student_level_dataset(tables: Dict[str, pd.DataFrame]) -> pd.DataFrame
 
     if "student_vle" in tables:
         student_vle = tables["student_vle"].copy()
-        vle_agg = student_vle.groupby(key_cols, dropna=False).agg(
-            total_clicks=("sum_click", "sum"),
-            avg_clicks_per_event=("sum_click", "mean"),
-            activity_events=("sum_click", "count"),
-        ).reset_index()
+        # try grouping; fall back to empty aggregation if memory is insufficient
+        try:
+            vle_agg = student_vle.groupby(key_cols, dropna=False).agg(
+                total_clicks=("sum_click", "sum"),
+                avg_clicks_per_event=("sum_click", "mean"),
+                activity_events=("sum_click", "count"),
+            ).reset_index()
+        except MemoryError:
+            # environment may not have enough RAM for the full aggregation; log and continue
+            print("WARNING: MemoryError during student_vle aggregation; skipping VLE features.")
+            vle_agg = pd.DataFrame(columns=key_cols + ["total_clicks", "avg_clicks_per_event", "activity_events"])
         base = base.merge(vle_agg, on=key_cols, how="left")
 
     if "final_result" not in base.columns:

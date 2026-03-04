@@ -1,646 +1,245 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EduMentor AI</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    body { background-color: #f8f9fa; }
+    .tab-content { border: 1px solid #dee2e6; border-top: none; }
+    .result-box { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 12px; font-family: monospace; white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow-y: auto; }
+    .spinner-border { display: none; }
+    .spinner-border.show { display: inline-block; }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container py-4" id="root">
-    <!-- React app will render here -->
+<body>
+  <div class="container-fluid py-4">
+    <h1 class="mb-1">EduMentor AI</h1>
+    <p class="text-muted">RAG Tutor · Exercise Generator · Student Risk Analytics</p>
+
+    <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-pane" type="button">Course Chat</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="exercise-tab" data-bs-toggle="tab" data-bs-target="#exercise-pane" type="button">Exercise Generator</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics-pane" type="button">Analytics Dashboard</button>
+      </li>
+    </ul>
+
+    <div class="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
+      <!-- Chat Tab -->
+      <div class="tab-pane fade show active" id="chat-pane" role="tabpanel">
+        <div class="mb-3">
+          <label class="form-label">Ask a course question</label>
+          <textarea id="chatQuestion" class="form-control" rows="3" placeholder="Explain gradient descent in simple terms"></textarea>
+        </div>
+        <button id="chatBtn" class="btn btn-primary">Ask</button>
+        <div id="chatLoading" class="spinner-border mt-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-4">
+          <h5>Answer</h5>
+          <pre id="chatAnswer" class="result-box"></pre>
+          <h6 class="mt-3">Sources</h6>
+          <ul id="chatSources"></ul>
+        </div>
+      </div>
+
+      <!-- Exercise Generator Tab -->
+      <div class="tab-pane fade" id="exercise-pane" role="tabpanel">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Topic</label>
+            <input id="exerciseTopic" class="form-control" placeholder="Python Functions" value="Python Basics">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Difficulty</label>
+            <select id="exerciseDifficulty" class="form-select">
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+        </div>
+        <button id="exerciseBtn" class="btn btn-success">Generate Exercise</button>
+        <div id="exerciseLoading" class="spinner-border mt-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-4">
+          <h5>Generated Exercise</h5>
+          <div class="mb-3">
+            <label class="form-label">Problem</label>
+            <pre id="exerciseProblem" class="result-box"></pre>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Solution</label>
+            <pre id="exerciseSolution" class="result-box"></pre>
+          </div>
+        </div>
+
+        <hr>
+        <h5>Quiz Text Auto-Grader</h5>
+        <div class="mb-2">
+          <label class="form-label">Question</label>
+          <textarea id="gradeQuestion" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Expected Answer</label>
+          <textarea id="gradeExpected" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Student Answer</label>
+          <textarea id="gradeStudent" class="form-control" rows="3"></textarea>
+        </div>
+        <button id="gradeBtn" class="btn btn-warning">Grade Answer</button>
+        <div id="gradeLoading" class="spinner-border mt-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <pre id="gradeResult" class="result-box mt-3"></pre>
+      </div>
+
+      <!-- Analytics Dashboard Tab -->
+      <div class="tab-pane fade" id="analytics-pane" role="tabpanel">
+        <p class="text-muted">
+          Submit a single student record as JSON to predict risk. You may include
+          only the fields you have – missing columns will be filled automatically.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">Student Record JSON</label>
+          <textarea id="riskJson" class="form-control" rows="12">{
+  "code_module": "AAA",
+  "code_presentation": "2013J",
+  "id_student": 123456,
+  "gender": "Male",
+  "region": "E",
+  "highest_education": "A Level or Equivalent",
+  "imd_band": "0-10",
+  "age_band": "20-25",
+  "num_of_prev_attempts": 0,
+  "studied_credits": 60,
+  "disability": "N",
+  "final_result": "Pass",
+  "registration_day": 1,
+  "unregister_day": 0,
+  "avg_assessment_score": 65,
+  "submitted_assessments": 3,
+  "avg_assessment_weight": 50,
+  "total_clicks": 120,
+  "avg_clicks_per_event": 5,
+  "activity_events": 200
+}</textarea>
+        </div>
+        <button id="riskBtn" class="btn btn-danger">Predict Risk</button>
+        <div id="riskLoading" class="spinner-border mt-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <pre id="riskResult" class="result-box mt-3"></pre>
+      </div>
+    </div>
   </div>
 
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin></script>
-
-  <script type="text/babel">
-    const { useState } = React;
-
-    function Loader() {
-      return (
-        <div className="d-flex justify-content-center my-3 loader-container">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      );
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Helper: Make API call with JSON
+    async function apiCall(endpoint, data) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        return await response.json();
+      } catch (err) {
+        console.error('API Error:', err);
+        throw err;
+      }
     }
 
-    function CopyButton({ text }) {
-      const [copied, setCopied] = useState(false);
-      const doCopy = async () => {
-        try {
-          await navigator.clipboard.writeText(text);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        } catch (e) {
-          /* ignore */
-        }
-      };
-      return (
-        <button
-          className="btn btn-outline-secondary btn-sm ms-2"
-          onClick={doCopy}
-        >
-          {copied ? "Copied" : "Copy"}
-        </button>
-      );
-    }
+    // Course Chat
+    document.getElementById('chatBtn').addEventListener('click', async () => {
+      const question = document.getElementById('chatQuestion').value;
+      if (!question.trim()) return;
+      
+      const loader = document.getElementById('chatLoading');
+      loader.classList.add('show');
+      
+      try {
+        const result = await apiCall('/api/chat', { question });
+        document.getElementById('chatAnswer').textContent = result.answer || 'No answer received';
+        
+        const sources = result.sources || [];
+        const sourcesList = document.getElementById('chatSources');
+        sourcesList.innerHTML = sources.map(s => `<li>${s}</li>`).join('');
+      } catch (err) {
+        document.getElementById('chatAnswer').textContent = 'Error: ' + err.message;
+      } finally {
+        loader.classList.remove('show');
+      }
+    });
 
-    async function postJson(url, payload) {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      return res.json();
-    }
+    // Exercise Generator
+    document.getElementById('exerciseBtn').addEventListener('click', async () => {
+      const topic = document.getElementById('exerciseTopic').value;
+      const difficulty = document.getElementById('exerciseDifficulty').value;
+      if (!topic.trim()) return;
+      
+      const loader = document.getElementById('exerciseLoading');
+      loader.classList.add('show');
+      
+      try {
+        const result = await apiCall('/api/exercise', { topic, difficulty });
+        document.getElementById('exerciseProblem').textContent = result.problem || 'No problem generated';
+        document.getElementById('exerciseSolution').textContent = result.solution || 'No solution generated';
+      } catch (err) {
+        document.getElementById('exerciseProblem').textContent = 'Error: ' + err.message;
+      } finally {
+        loader.classList.remove('show');
+      }
+    });
 
-    function ChatTab() {
-      const [question, setQuestion] = useState("");
-      const [answer, setAnswer] = useState("");
-      const [sources, setSources] = useState([]);
-      const [loading, setLoading] = useState(false);
+    // Auto-Grader
+    document.getElementById('gradeBtn').addEventListener('click', async () => {
+      const question = document.getElementById('gradeQuestion').value;
+      const expected = document.getElementById('gradeExpected').value;
+      const student = document.getElementById('gradeStudent').value;
+      
+      if (!question.trim() || !expected.trim() || !student.trim()) return;
+      
+      const loader = document.getElementById('gradeLoading');
+      loader.classList.add('show');
+      
+      try {
+        const result = await apiCall('/api/grade-quiz', { question, expected_answer: expected, student_answer: student });
+        document.getElementById('gradeResult').textContent = JSON.stringify(result, null, 2);
+      } catch (err) {
+        document.getElementById('gradeResult').textContent = 'Error: ' + err.message;
+      } finally {
+        loader.classList.remove('show');
+      }
+    });
 
-      const send = async () => {
-        if (!question.trim()) return;
-        setLoading(true);
-        try {
-          const result = await postJson("/api/chat", { question });
-          setAnswer(result.answer || result.error || "No response");
-          setSources(result.sources || []);
-        } catch (e) {
-          setAnswer("Error: " + e.message);
-          setSources([]);
-        }
-        setLoading(false);
-      };
-
-      return (
-        <div>
-          <div className="mb-3">
-            <label className="form-label">Ask a course question</label>
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="form-control"
-              rows={3}
-              placeholder="Explain gradient descent in simple terms"
-            />
-          </div>
-          <button className="btn btn-primary" onClick={send} disabled={loading}>
-            Ask
-          </button>
-          {loading && <Loader />}
-
-          <div className="mt-4">
-            <h5>Answer</h5>
-            <div className="d-flex align-items-start">
-              <pre className="result-box flex-grow-1">{answer}</pre>
-              <CopyButton text={answer} />
-            </div>
-            <h6>Sources</h6>
-            <ul>
-              {sources.map((src, idx) => (
-                <li key={idx}>{src}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      );
-    }
-
-    function ExerciseTab() {
-      const [topic, setTopic] = useState("Python Basics");
-      const [difficulty, setDifficulty] = useState("Beginner");
-      const [result, setResult] = useState({});
-      const [loading, setLoading] = useState(false);
-      const [showDetails, setShowDetails] = useState(false);
-
-      const generate = async () => {
-        setLoading(true);
-        try {
-          const r = await postJson("/api/exercise", { topic, difficulty });
-          const text = normalizeExerciseText(r.exercise || r.error || "No response");
-          const sectionOrder = [
-            "Problem",
-            "Example Input",
-            "Expected Output",
-            "Hints",
-            "Solution",
-            "Example Usage",
-          ];
-
-          const extract = (name) =>
-            extractSection(text, name, sectionOrder.filter((s) => s !== name));
-
-          setResult({
-            problem: extract("Problem") || text,
-            exampleInput: extract("Example Input"),
-            expectedOutput: extract("Expected Output"),
-            hints: extract("Hints"),
-            solution: extract("Solution"),
-            exampleUsage: extract("Example Usage"),
-          });
-        } catch (e) {
-          setResult({ problem: "Error: " + e.message });
-        }
-        setLoading(false);
-        setShowDetails(false);
-      };
-
-      return (
-        <div>
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label">Topic</label>
-              <input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="form-control"
-                placeholder="Python Functions"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Difficulty</label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-                className="form-select"
-              >
-                <option>Beginner</option>
-                <option>Intermediate</option>
-                <option>Advanced</option>
-              </select>
-            </div>
-          </div>
-          <button
-            className="btn btn-success mt-3"
-            onClick={generate}
-            disabled={loading}
-          >
-            Generate Exercise
-          </button>
-          {loading && <Loader />}
-
-          {result.problem && (
-            <div className="mt-4">
-              <h5>Generated Exercise</h5>
-              <div className="mb-3">
-                <label className="form-label">Problem</label>
-                <div className="d-flex align-items-start">
-                  <pre className="result-box flex-grow-1">{result.problem}</pre>
-                  <CopyButton text={result.problem} />
-                </div>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Example Input</label>
-                <div className="d-flex align-items-start">
-                  <pre className="result-box flex-grow-1">
-                    {result.exampleInput || "No example input provided."}
-                  </pre>
-                  <CopyButton
-                    text={result.exampleInput || "No example input provided."}
-                  />
-                </div>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Expected Output</label>
-                <pre className="result-box">
-                  {result.expectedOutput || "No expected output provided."}
-                </pre>
-              </div>
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails
-                  ? "Hide Hints / Solution / Example Usage"
-                  : "Show Hints / Solution / Example Usage"}
-              </button>
-              {showDetails && (
-                <div className="mt-3">
-                  <div className="mb-3">
-                    <label className="form-label">Hints</label>
-                    <div className="d-flex align-items-start">
-                      <pre className="result-box">
-                        {result.hints || "No hints provided."}
-                      </pre>
-                      <CopyButton text={result.hints || "No hints provided."} />
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Solution</label>
-                    <div className="d-flex align-items-start">
-                      <pre className="result-box">
-                        {result.solution || "No solution provided."}
-                      </pre>
-                      <CopyButton text={result.solution || "No solution provided."} />
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Example Usage</label>
-                    <div className="d-flex align-items-start">
-                      <pre className="result-box">
-                        {result.exampleUsage || "No example usage provided."}
-                      </pre>
-                      <CopyButton
-                        text={result.exampleUsage || "No example usage provided."}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <hr />
-          <h5>Quiz Text Auto-Grader</h5>
-          <Grader />
-        </div>
-      );
-    }
-
-    function Grader() {
-      const [question, setQuestion] = useState("");
-      const [expected, setExpected] = useState("");
-      const [student, setStudent] = useState("");
-      const [feedback, setFeedback] = useState("");
-      const [loading, setLoading] = useState(false);
-
-      const grade = async () => {
-        setLoading(true);
-        try {
-          const r = await postJson("/api/grade-quiz", {
-            question,
-            expected_answer: expected,
-            student_answer: student,
-          });
-          setFeedback(r.feedback || r.error || "No response");
-        } catch (e) {
-          setFeedback("Error: " + e.message);
-        }
-        setLoading(false);
-      };
-
-      return (
-        <div>
-          <div className="mb-2">
-            <label className="form-label">Question</label>
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="form-control"
-              rows={2}
-            />
-          </div>
-          <div className="mb-2">
-            <label className="form-label">Expected Answer</label>
-            <textarea
-              value={expected}
-              onChange={(e) => setExpected(e.target.value)}
-              className="form-control"
-              rows={3}
-            />
-          </div>
-          <div className="mb-2">
-            <label className="form-label">Student Answer</label>
-            <textarea
-              value={student}
-              onChange={(e) => setStudent(e.target.value)}
-              className="form-control"
-              rows={3}
-            />
-          </div>
-          <button className="btn btn-warning" onClick={grade} disabled={loading}>
-            Grade Answer
-          </button>
-          {loading && <Loader />}
-          {feedback && (
-            <div className="d-flex align-items-start mt-3">
-              <pre className="result-box flex-grow-1">{feedback}</pre>
-              <CopyButton text={feedback} />
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function AnalyticsTab() {
-      const [formData, setFormData] = useState({
-        gender: "",
-        highest_education: "",
-        imd_band: "",
-        age_band: "",
-        studied_credits: "",
-        disability: "",
-        final_result: "",
-        registration_day: "",
-        unregister_day: "",
-        avg_assessment_score: "",
-        submitted_assessments: "",
-        avg_assessment_weight: "",
-        total_clicks: "",
-        avg_clicks_per_event: "",
-        activity_events: ""
-      });
-      const [result, setResult] = useState("");
-      const [loading, setLoading] = useState(false);
-
-      const handleInputChange = (field, value) => {
-        setFormData(prev => ({
-          ...prev,
-          [field]: value
-        }));
-      };
-
-      const predict = async () => {
-        setLoading(true);
-        try {
-          const payload = {
-            ...formData,
-            studied_credits: parseInt(formData.studied_credits),
-            registration_day: parseInt(formData.registration_day),
-            unregister_day: parseInt(formData.unregister_day),
-            avg_assessment_score: parseFloat(formData.avg_assessment_score),
-            submitted_assessments: parseInt(formData.submitted_assessments),
-            avg_assessment_weight: parseFloat(formData.avg_assessment_weight),
-            total_clicks: parseInt(formData.total_clicks),
-            avg_clicks_per_event: parseFloat(formData.avg_clicks_per_event),
-            activity_events: parseInt(formData.activity_events)
-          };
-          const r = await postJson("/api/risk", payload);
-          // Format response as human-readable text
-          let resultText = "Risk Assessment Result\n";
-          resultText += "=".repeat(40) + "\n\n";
-          for (const [key, value] of Object.entries(r)) {
-            const formattedKey = key.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-            resultText += `${formattedKey}: ${value}\n`;
-          }
-          setResult(resultText);
-        } catch (e) {
-          setResult("Error: " + e.message);
-        }
-        setLoading(false);
-      };
-
-      return (
-        <div>
-          <p className="text-muted">
-            Enter student information to predict risk level.
-          </p>
-          <div className="row g-3">
-            <div className="col-md-6">
-              <label className="form-label">Gender</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.gender}
-                onChange={(e) => handleInputChange("gender", e.target.value)}
-                placeholder="e.g., M, F"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Highest Education</label>
-              <select
-                className="form-select"
-                value={formData.highest_education}
-                onChange={(e) => handleInputChange("highest_education", e.target.value)}
-              >
-                <option value="">Select highest education</option>
-                <option>A Level or Equivalent</option>
-                <option>HE Qualification</option>
-                <option>Lower Than A Level</option>
-                <option>Post Graduate Qualification</option>
-              </select>
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">IMD Band</label>
-              <select
-                className="form-select"
-                value={formData.imd_band}
-                onChange={(e) => handleInputChange("imd_band", e.target.value)}
-              >
-                <option value="">Select IMD band</option>
-                <option>0-10</option>
-                <option>10-20</option>
-                <option>20-30</option>
-                <option>30-40</option>
-                <option>40-50</option>
-                <option>50-60</option>
-                <option>60-70</option>
-                <option>70-80</option>
-                <option>80-90</option>
-                <option>90-100</option>
-              </select>
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Age Band</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.age_band}
-                onChange={(e) => handleInputChange("age_band", e.target.value)}
-                placeholder="e.g., 20-25"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Studied Credits</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.studied_credits}
-                onChange={(e) => handleInputChange("studied_credits", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Disability</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.disability}
-                onChange={(e) => handleInputChange("disability", e.target.value)}
-                placeholder="Y or N"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Final Result</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.final_result}
-                onChange={(e) => handleInputChange("final_result", e.target.value)}
-                placeholder="e.g., Pass, Fail"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Registration Day</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.registration_day}
-                onChange={(e) => handleInputChange("registration_day", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Unregister Day</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.unregister_day}
-                onChange={(e) => handleInputChange("unregister_day", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Avg Assessment Score</label>
-              <input
-                type="number"
-                step="0.1"
-                className="form-control"
-                value={formData.avg_assessment_score}
-                onChange={(e) => handleInputChange("avg_assessment_score", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Submitted Assessments</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.submitted_assessments}
-                onChange={(e) => handleInputChange("submitted_assessments", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Avg Assessment Weight</label>
-              <input
-                type="number"
-                step="0.1"
-                className="form-control"
-                value={formData.avg_assessment_weight}
-                onChange={(e) => handleInputChange("avg_assessment_weight", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Total Clicks</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.total_clicks}
-                onChange={(e) => handleInputChange("total_clicks", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Avg Clicks Per Event</label>
-              <input
-                type="number"
-                step="0.1"
-                className="form-control"
-                value={formData.avg_clicks_per_event}
-                onChange={(e) => handleInputChange("avg_clicks_per_event", e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Activity Events</label>
-              <input
-                type="number"
-                className="form-control"
-                value={formData.activity_events}
-                onChange={(e) => handleInputChange("activity_events", e.target.value)}
-              />
-            </div>
-          </div>
-          <button className="btn btn-danger mt-4" onClick={predict} disabled={loading}>
-            Predict Risk
-          </button>
-          {loading && <Loader />}
-          {result && (
-            <div className="d-flex align-items-start mt-3">
-              <pre className="result-box flex-grow-1">{result}</pre>
-              <CopyButton text={result} />
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function App() {
-      const [activeTab, setActiveTab] = useState("chat");
-      const renderTab = () => {
-        switch (activeTab) {
-          case "chat":
-            return <ChatTab />;
-          case "exercise":
-            return <ExerciseTab />;
-          case "analytics":
-            return <AnalyticsTab />;
-          default:
-            return null;
-        }
-      };
-      return (
-        <React.Fragment>
-          <h1 className="mb-1">EduMentor AI</h1>
-          <p className="text-muted">
-            RAG Tutor · Exercise Generator · Student Risk Analytics
-          </p>
-          <ul className="nav nav-tabs" role="tablist">
-            <li className="nav-item" role="presentation">
-              <button
-                className={`nav-link ${activeTab === "chat" ? "active" : ""}`}
-                onClick={() => setActiveTab("chat")}
-              >
-                Course Chat
-              </button>
-            </li>
-            <li className="nav-item" role="presentation">
-              <button
-                className={`nav-link ${activeTab === "exercise" ? "active" : ""}`}
-                onClick={() => setActiveTab("exercise")}
-              >
-                Exercise Generator
-              </button>
-            </li>
-            <li className="nav-item" role="presentation">
-              <button
-                className={`nav-link ${activeTab === "analytics" ? "active" : ""}`}
-                onClick={() => setActiveTab("analytics")}
-              >
-                Analytics Dashboard
-              </button>
-            </li>
-          </ul>
-          <div className="tab-content border border-top-0 bg-white p-4 rounded-bottom shadow-sm">
-            {renderTab()}
-          </div>
-        </React.Fragment>
-      );
-    }
-
-    // helper functions from original script
-    function extractSection(text, sectionName, nextSections) {
-      const escapedSection = sectionName.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-      const escapedNext = nextSections
-        .map((name) => name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"))
-        .join("|");
-
-      const regex = new RegExp(
-        `(?:^|\\n)\\s*(?:\\*\\*)?${escapedSection}:(?:\\*\\*)?\\s*([\\s\\S]*?)(?=(?:\\n\\s*(?:\\*\\*)?(?:${escapedNext}):(?:\\*\\*)?)|$)`,
-        "i"
-      );
-      const match = text.match(regex);
-      return match ? match[1].trim() : "";
-    }
-
-    function normalizeExerciseText(text) {
-      return (text || "")
-        .replace(/\r\n/g, "\n")
-        .replace(/^\s*\*\*(Problem|Example Input|Expected Output|Hints|Solution|Example Usage):\*\*\s*$/gim, "$1:")
-        .trim();
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script></body>
+    // Risk Predictor
+    document.getElementById('riskBtn').addEventListener('click', async () => {
+      const jsonText = document.getElementById('riskJson').value;
+      
+      try {
+        const data = JSON.parse(jsonText);
+        const loader = document.getElementById('riskLoading');
+        loader.classList.add('show');
+        
+        const result = await apiCall('/api/risk', data);
+        document.getElementById('riskResult').textContent = JSON.stringify(result, null, 2);
+        
+        loader.classList.remove('show');
+      } catch (err) {
+        document.getElementById('riskResult').textContent = 'JSON Parse Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
 </html>

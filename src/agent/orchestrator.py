@@ -6,20 +6,28 @@ from src.config import settings
 from src.llm.prompts import EXERCISE_GENERATION_PROMPT, QUIZ_GRADING_PROMPT, TUTOR_SYSTEM_PROMPT
 from src.llm.services import OpenAILLMService
 from src.ml.predict import RiskPredictor
-from src.rag.retriever import ChromaRetriever
 
 
 class EduMentorAgent:
     def __init__(self):
         self.llm = OpenAILLMService()
         self.predictor = RiskPredictor(settings.model_path)
-        self.retriever = ChromaRetriever(
-            persist_dir=settings.chroma_persist_dir,
-            collection_name=settings.chroma_collection,
-            embedding_model=settings.embedding_model,
-        )
+        # Try to initialize the RAG system; fall back gracefully if chromadb fails
+        self.retriever = None
+        try:
+            from src.rag.retriever import ChromaRetriever
+            self.retriever = ChromaRetriever(
+                persist_dir=settings.chroma_persist_dir,
+                collection_name=settings.chroma_collection,
+                embedding_model=settings.embedding_model,
+            )
+        except Exception as e:
+            print(f"WARNING: RAG system initialization failed: {e}. Course Q&A features will be unavailable.")
 
     def answer_course_question(self, question: str) -> Dict[str, Any]:
+        if self.retriever is None:
+            return {"answer": "RAG system is not available. Please set up ChromaDB to use course Q&A.", "sources": []}
+        
         retrieval = self.retriever.search(question, top_k=4)
         docs = retrieval.get("documents", [])
         metadatas = retrieval.get("metadatas", [])
