@@ -13,8 +13,10 @@ def health_check():
 
 @api_bp.post("/chat")
 def chat():
+    """Handle chat requests and return AI-generated responses."""
     payload = request.get_json(silent=True) or {}
     question = payload.get("question", "").strip()
+    
     if not question:
         return jsonify({"error": "question is required"}), 400
 
@@ -24,6 +26,7 @@ def chat():
 
 @api_bp.post("/exercise")
 def exercise():
+    """Generate educational exercises based on topic and difficulty."""
     payload = request.get_json(silent=True) or {}
     topic = payload.get("topic", "Python Basics")
     difficulty = payload.get("difficulty", "Beginner")
@@ -33,6 +36,7 @@ def exercise():
 
 @api_bp.post("/grade-quiz")
 def grade_quiz():
+    """Grade student quiz answers and provide feedback."""
     payload = request.get_json(silent=True) or {}
     question = payload.get("question", "").strip()
     expected_answer = payload.get("expected_answer", "").strip()
@@ -51,6 +55,7 @@ def grade_quiz():
 
 @api_bp.post("/risk")
 def predict_risk():
+    """Predict student dropout risk based on provided data."""
     payload = request.get_json(silent=True) or {}
     result = agent.predict_risk(payload)
     return jsonify(result)
