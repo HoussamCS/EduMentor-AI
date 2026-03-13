@@ -25,17 +25,21 @@ class EduMentorAgent:
             print(f"WARNING: RAG system initialization failed: {e}. Course Q&A features will be unavailable.")
 
     def answer_course_question(self, question: str) -> Dict[str, Any]:
+        """Answer a course-related question using RAG (Retrieval Augmented Generation)."""
         if self.retriever is None:
             return {"answer": "RAG system is not available. Please set up ChromaDB to use course Q&A.", "sources": []}
         
+        # Retrieve relevant documents from the knowledge base
         retrieval = self.retriever.search(question, top_k=4)
         docs = retrieval.get("documents", [])
         metadatas = retrieval.get("metadatas", [])
         distances = retrieval.get("distances", [])
 
+        # Return "I don't know" if no documents found
         if not docs:
             return {"answer": "I don't know", "sources": []}
 
+        # Check if closest match is too far away (distance > 1.2 indicates poor relevance)
         if distances and min(distances) > 1.2:
             return {"answer": "I don't know", "sources": []}
 
