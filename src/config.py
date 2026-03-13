@@ -1,3 +1,9 @@
+"""
+Configuration module for EduMentor AI application.
+
+This module loads environment variables and provides a centralized
+Settings dataclass for application configuration.
+"""
 import os
 from dataclasses import dataclass
 
@@ -9,6 +15,7 @@ load_dotenv(override=True)
 
 @dataclass(frozen=True)
 class Settings:
+    """Application configuration settings loaded from environment variables."""
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "").strip()
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     chroma_persist_dir: str = os.getenv("CHROMA_PERSIST_DIR", "chromadb")

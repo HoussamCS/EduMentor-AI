@@ -13,8 +13,13 @@ const apiClient = axios.create({
 export const api = {
   // Chat endpoints
   chat: async (message: string): Promise<string> => {
-    const response = await apiClient.post("/api/chat", { message });
-    return response.data.response;
+    try {
+      const response = await apiClient.post("/api/chat", { message });
+      return response.data.response;
+    } catch (error) {
+      console.error("Chat API error:", error);
+      throw error;
+    }
   },
 
   // Exercise generation endpoints
@@ -37,7 +42,8 @@ export const api = {
     try {
       const response = await apiClient.get("/api/health");
       return response.status === 200;
-    } catch {
+    } catch (error) {
+      console.error("Health check failed:", error);
       return false;
     }
   },
