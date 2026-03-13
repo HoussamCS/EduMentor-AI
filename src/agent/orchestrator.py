@@ -82,18 +82,20 @@ class EduMentorAgent:
         return {"feedback": result}
 
     def predict_risk(self, student_record: Dict[str, Any]) -> Dict[str, Any]:
+        """Predict student dropout risk and provide recommendations."""
         try:
             prediction = self.predictor.predict(student_record)
         except FileNotFoundError as exc:
-            # model file missing
+            # Model file is missing - needs to be trained first
             return {"error": str(exc), "hint": "Train and save a model first in models/risk_model.joblib"}
         except ValueError as exc:
-            # likely an input mismatch
+            # Input validation error - likely missing or invalid fields
             return {"error": str(exc), "hint": "Check that your JSON has the correct fields (missing values will be imputed)."}
         except Exception as exc:
-            # generic fallback
+            # Catch-all for unexpected errors
             return {"error": str(exc), "hint": "An unexpected error occurred."}
 
+        # Generate personalized recommendations based on risk level
         recommendations = self._recommend_by_risk(prediction.get("risk_prediction", "Safe"))
         return {**prediction, "recommendations": recommendations}
 
