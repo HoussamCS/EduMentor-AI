@@ -73,17 +73,19 @@ const ChatTab: React.FC = () => {
         sx={{
           flex: 1,
           overflow: "auto",
-          p: 2,
+          p: { xs: 2, md: 3 },
           mb: 2,
-          backgroundColor: "#f5f5f5",
+          bgcolor: "background.paper",
           minHeight: 400,
         }}
+        role="region"
+        aria-live="polite"
       >
         <Stack spacing={2}>
           {messages.length === 0 && (
             <Typography
               variant="body2"
-              color="textSecondary"
+              color="text.secondary"
               textAlign="center"
               py={4}
             >
@@ -106,7 +108,7 @@ const ChatTab: React.FC = () => {
                 {msg.role === "assistant" && (
                   <Avatar
                     sx={{
-                      bgcolor: "#1976d2",
+                      bgcolor: "primary.main",
                       width: 32,
                       height: 32,
                       fontSize: "0.875rem",
@@ -118,9 +120,8 @@ const ChatTab: React.FC = () => {
                 <Paper
                   sx={{
                     p: 1.5,
-                    backgroundColor:
-                      msg.role === "user" ? "#1976d2" : "#fff",
-                    color: msg.role === "user" ? "#fff" : "#000",
+                    bgcolor: msg.role === "user" ? "primary.main" : "background.paper",
+                    color: msg.role === "user" ? "primary.contrastText" : "text.primary",
                     borderRadius: 2,
                   }}
                 >
@@ -147,10 +148,11 @@ const ChatTab: React.FC = () => {
       <Divider />
 
       {/* Input Area */}
-      <Box display="flex" gap={1} mt={2}>
+      <Box display="flex" gap={1} mt={2} component="form" onSubmit={(e)=>{e.preventDefault(); handleSendMessage();}}>
         <TextField
           fullWidth
           placeholder="Ask me anything about the course..."
+          aria-label="Ask a question"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => {

@@ -86,7 +86,7 @@ const AnalyticsTab: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="body1" color="textSecondary" mb={3}>
+      <Typography variant="body1" color="text.secondary" mb={3}>
         Enter student information to predict risk level.
       </Typography>
 
@@ -336,7 +336,7 @@ const AnalyticsTab: React.FC = () => {
             <Grid item xs={12}>
               <Button
                 variant="contained"
-                color="error"
+                color="primary"
                 size="large"
                 fullWidth
                 startIcon={<AnalyticsIcon />}
@@ -354,7 +354,7 @@ const AnalyticsTab: React.FC = () => {
 
       {/* Results Display */}
       {result && !loading && (
-        <Card sx={{ backgroundColor: "#f5f5f5" }}>
+        <Card sx={{ bgcolor: "background.paper" }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               <AnalyticsIcon sx={{ mr: 1, verticalAlign: "middle" }} />
@@ -376,10 +376,10 @@ const AnalyticsTab: React.FC = () => {
                     py={1}
                     px={2}
                     sx={{
-                      backgroundColor: "#fff",
+                      backgroundColor: "background.paper",
                       borderRadius: 1,
                       "&:hover": {
-                        backgroundColor: "#fafafa",
+                        backgroundColor: "background.default",
                       },
                     }}
                   >
@@ -391,10 +391,10 @@ const AnalyticsTab: React.FC = () => {
                       sx={{
                         fontWeight: "bold",
                         color: key.includes("risk")
-                          ? "#d32f2f"
+                          ? "error.main"
                           : key.includes("probability")
-                            ? "#1976d2"
-                            : "#333",
+                            ? "primary.main"
+                            : "text.primary",
                       }}
                     >
                       {String(value)}

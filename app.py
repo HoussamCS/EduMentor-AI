@@ -22,8 +22,8 @@ def create_app() -> Flask:
 
     # Serve React frontend if built, otherwise fallback to Jinja template
     @app.route("/")
-    def index():
-        react_build = os.path.join(os.path.dirname(__file__), "frontend", "build", "index.html")
+    def index() -> str:
+        react_build: str = os.path.join(os.path.dirname(__file__), "frontend", "build", "index.html")
         if os.path.exists(react_build):
             return send_from_directory(os.path.join(os.path.dirname(__file__), "frontend", "build"), "index.html")
         # Fallback to old template if React build doesn't exist
@@ -31,8 +31,8 @@ def create_app() -> Flask:
 
     # Route for static assets from React build (if available)
     @app.route("/<path:path>")
-    def serve_react(path):
-        react_build = os.path.join(os.path.dirname(__file__), "frontend", "build")
+    def serve_react(path: str) -> tuple[str, int] | str:
+        react_build: str = os.path.join(os.path.dirname(__file__), "frontend", "build")
         file_path = os.path.join(react_build, path)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return send_from_directory(react_build, path)

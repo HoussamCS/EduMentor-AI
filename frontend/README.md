@@ -55,6 +55,8 @@ src/
 │   └── Loader.tsx
 ├── pages/           # Page components (if needed)
 ├── services/        # API and external service calls
+├── theme.ts          # design tokens and palette
+├── ThemeProvider.tsx # dark/light mode provider
 │   └── api.ts
 ├── types/           # TypeScript type definitions
 │   └── index.ts

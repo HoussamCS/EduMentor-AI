@@ -6,8 +6,6 @@ import {
   Tabs,
   Tab,
   Typography,
-  AppBar,
-  Toolbar,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import SchoolIcon from "@mui/icons-material/School";
@@ -15,6 +13,8 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import ChatTab from "@components/ChatTab";
 import ExerciseTab from "@components/ExerciseTab";
 import AnalyticsTab from "@components/AnalyticsTab";
+import Header from "@components/Header";
+import Footer from "@components/Footer";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -25,7 +25,7 @@ interface TabPanelProps {
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
-  return (""
+  return (
     <div
       role="tabpanel"
       hidden={value !== index}
@@ -33,7 +33,9 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && (
+        <Box sx={{ p: { xs: 2, md: 3 } }}>{children}</Box>
+      )}
     </div>
   );
 }
@@ -46,24 +48,22 @@ const App: React.FC = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#fafafa" }}>
-      {/* Header */}
-      <AppBar position="static" elevation={1}>
-        <Toolbar>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h5" component="div" fontWeight="bold">
-              🎓 EduMentor AI
-            </Typography>
-            <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
-              RAG Tutor · Exercise Generator · Student Risk Analytics
-            </Typography>
-          </Box>
-        </Toolbar>
-      </AppBar>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        background: "transparent",
+        color: "text.primary",
+        position: "relative",
+      }}
+    >
+      {/* Header component */}
+      <Header />
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 3, flex: 1 }}>
-        <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, flex: 1, position: "relative", zIndex: 1 }}>
+        <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden", backdropFilter: "blur(20px)" }}>
           {/* Tabs */}
           <Tabs
             value={activeTab}
@@ -72,7 +72,7 @@ const App: React.FC = () => {
             sx={{
               borderBottom: 1,
               borderColor: "divider",
-              backgroundColor: "#fff",
+              bgcolor: "background.paper",
             }}
           >
             <Tab
@@ -113,21 +113,8 @@ const App: React.FC = () => {
         </Paper>
       </Container>
 
-      {/* Footer */}
-      <Box
-        component="footer"
-        sx={{
-          backgroundColor: "#fff",
-          borderTop: 1,
-          borderColor: "divider",
-          py: 2,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="caption" color="textSecondary">
-          © 2024 EduMentor AI. All rights reserved.
-        </Typography>
-      </Box>
+      {/* Footer component */}
+      <Footer />
     </Box>
   );
 };

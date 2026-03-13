@@ -13,6 +13,7 @@ import {
   Chip,
   TextField,
   Divider,
+  Paper,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import api from "@services/api";
@@ -72,7 +73,7 @@ const ExerciseTab: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="body1" color="textSecondary" mb={3}>
+      <Typography variant="body1" color="text.secondary" mb={3}>
         Generate custom exercises tailored to your learning needs.
       </Typography>
 
@@ -153,7 +154,7 @@ const ExerciseTab: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               Question
             </Typography>
-            <Paper sx={{ p: 2, backgroundColor: "#f5f5f5", mb: 2 }}>
+            <Paper sx={{ p: 2, bgcolor: "background.paper", mb: 2 }}>
               <Typography variant="body1">{exercise.question}</Typography>
             </Paper>
 
@@ -185,7 +186,5 @@ const ExerciseTab: React.FC = () => {
   );
 };
 
-// Import Paper from MUI
-import { Paper } from "@mui/material";
 
 export default ExerciseTab;

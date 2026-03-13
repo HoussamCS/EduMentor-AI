@@ -15,8 +15,8 @@ const Loader: React.FC<LoaderProps> = ({ message = "Loading..." }) => {
       py={4}
       gap={2}
     >
-      <CircularProgress />
-      <Typography variant="body1" color="textSecondary">
+      <CircularProgress color="primary" />
+      <Typography variant="body1" color="text.secondary">
         {message}
       </Typography>
     </Box>
