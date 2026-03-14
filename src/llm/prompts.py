@@ -1,3 +1,11 @@
+"""
+Prompt templates for LLM interactions.
+
+This module contains system prompts and user prompt templates for various
+educational AI functionalities including tutoring, exercise generation,
+and quiz grading.
+"""
+
 TUTOR_SYSTEM_PROMPT = """
 You are EduMentor AI, an expert technical tutor.
 Rules:
