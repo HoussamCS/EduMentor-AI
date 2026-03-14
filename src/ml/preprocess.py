@@ -1,3 +1,10 @@
+"""
+Data preprocessing module for student analytics.
+
+This module provides functions to load and preprocess OULAD (Open University
+Learning Analytics Dataset) tables into a student-level feature dataset
+suitable for dropout risk prediction.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,6 +15,18 @@ from sklearn.model_selection import train_test_split
 
 
 def load_oulad_tables(raw_data_dir: str | Path) -> Dict[str, pd.DataFrame]:
+    """
+    Load OULAD CSV tables from the specified directory.
+    
+    Args:
+        raw_data_dir: Path to directory containing OULAD CSV files
+        
+    Returns:
+        Dictionary mapping table names to DataFrames
+        
+    Raises:
+        FileNotFoundError: If studentInfo.csv is not found
+    """
     raw_path = Path(raw_data_dir)
     table_files = {
         "student_info": "studentInfo.csv",
@@ -29,6 +48,21 @@ def load_oulad_tables(raw_data_dir: str | Path) -> Dict[str, pd.DataFrame]:
 
 
 def build_student_level_dataset(tables: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """
+    Aggregate OULAD tables into a student-level feature dataset.
+    
+    Combines student information, registration details, assessment scores,
+    and VLE (Virtual Learning Environment) activity into a single dataset.
+    
+    Args:
+        tables: Dictionary of DataFrames loaded from OULAD
+        
+    Returns:
+        DataFrame with one row per student, including risk labels
+        
+    Raises:
+        ValueError: If final_result column is missing from student_info
+    """
     student_info = tables["student_info"].copy()
     key_cols = ["code_module", "code_presentation", "id_student"]
 
