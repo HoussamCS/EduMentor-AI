@@ -1,3 +1,9 @@
+"""
+Machine learning module for predicting student dropout risk.
+
+This module provides the RiskPredictor class for loading trained models
+and making predictions on student data.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,17 +14,35 @@ import pandas as pd
 
 
 class RiskPredictor:
+    """Predicts student dropout risk using a trained ML model."""
+    
     def __init__(self, model_path: str):
+        """
+        Initialize the predictor with a model path.
+        
+        Args:
+            model_path: Path to the saved joblib model file
+        """
         self.model_path = model_path
         self._model = None
 
     def load(self):
+        """Load the trained model from disk."""
         path = Path(self.model_path)
         if not path.exists():
             raise FileNotFoundError(f"Model file not found at {path}")
         self._model = joblib.load(path)
 
     def predict(self, student_record: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Predict dropout risk for a student.
+        
+        Args:
+            student_record: Dictionary containing student features
+            
+        Returns:
+            Dictionary with risk_prediction, risk_flag, and confidence
+        """
         if self._model is None:
             self.load()
 
