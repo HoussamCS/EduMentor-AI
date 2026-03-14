@@ -2,8 +2,18 @@ import React from "react";
 import { AppBar, Toolbar, Box, Typography, useTheme } from "@mui/material";
 import ThemeToggle from "./ThemeToggle";
 
+/**
+ * Header component for the EduMentor AI application.
+ * Displays the app title, tagline, and theme toggle.
+ */
 const Header: React.FC = () => {
   const theme = useTheme();
+  
+  // Dynamic border color based on theme mode
+  const borderColor = theme.palette.mode === "light" 
+    ? "rgba(0, 0, 0, 0.1)" 
+    : "rgba(255, 255, 255, 0.1)";
+  
   return (
     <AppBar
       position="sticky"
@@ -12,7 +22,7 @@ const Header: React.FC = () => {
         backdropFilter: "blur(20px)",
         bgcolor: "background.paper",
         borderBottom: "1px solid",
-        borderColor: theme.palette.mode === "light" ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.1)",
+        borderColor: borderColor,
         zIndex: 100,
       }}
     >
