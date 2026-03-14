@@ -38,16 +38,21 @@ function ChatTab() {
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
 
+  // Smooth scroll to the bottom of the chat
   const scrollToBottom = () => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Auto-scroll when new messages arrive
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   const send = async () => {
+    // Validate input before sending
     if (!input.trim()) return;
+    
+    // Create and display user message immediately
     const userMessage = {
       id: Date.now().toString(),
       role: "user",
@@ -57,8 +62,12 @@ function ChatTab() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
+    
     try {
+      // Call the chat API endpoint
       const resp = await postJson("/api/chat", { message: input });
+      
+      // Display AI assistant response
       const assistantMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -67,6 +76,7 @@ function ChatTab() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (e) {
+      // Handle network or API errors gracefully
       const errorMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
